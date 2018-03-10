@@ -1,0 +1,9 @@
+C:\Users\User\Source\Repos\SharpSCADA\SCADA\Program\AppRegistry\bin\Debug\AppRegistry.exe.config
+C:\Users\User\Source\Repos\SharpSCADA\SCADA\Program\AppRegistry\bin\Debug\AppRegistry.exe
+C:\Users\User\Source\Repos\SharpSCADA\SCADA\Program\AppRegistry\bin\Debug\AppRegistry.pdb
+C:\Users\User\Source\Repos\SharpSCADA\SCADA\Program\AppRegistry\obj\Debug\AppRegistry.FormMain.resources
+C:\Users\User\Source\Repos\SharpSCADA\SCADA\Program\AppRegistry\obj\Debug\AppRegistry.Properties.Resources.resources
+C:\Users\User\Source\Repos\SharpSCADA\SCADA\Program\AppRegistry\obj\Debug\AppRegistry.csproj.GenerateResource.Cache
+C:\Users\User\Source\Repos\SharpSCADA\SCADA\Program\AppRegistry\obj\Debug\AppRegistry.csproj.CoreCompileInputs.cache
+C:\Users\User\Source\Repos\SharpSCADA\SCADA\Program\AppRegistry\obj\Debug\AppRegistry.exe
+C:\Users\User\Source\Repos\SharpSCADA\SCADA\Program\AppRegistry\obj\Debug\AppRegistry.pdb
