@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows;
@@ -9,7 +9,19 @@ namespace CoreTest
 {
     public sealed class ConfigCache
     {
-        public const string PATH = @"C:\DataConfig\client.xml";
+        public static string ReadKey(string keyName)
+        {
+            string result = string.Empty;
+            try
+            {
+                Microsoft.Win32.RegistryKey regKey;
+                regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\HMI");//HKEY_CURRENR_USER\Software\VSSCD
+                if (regKey != null) result = (string)regKey.GetValue(keyName);
+            }
+            catch (Exception ex) { throw ex; }
+            return result;
+        }
+        public static string PATH = string.Format( @"{0}\client.xml", ReadKey("HMI_DataConfig"));
 
         static ConfigCache()
         {
