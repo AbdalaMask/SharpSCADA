@@ -1,4 +1,4 @@
-﻿using MySql.Data.MySqlClient;
+using MySql.Data.MySqlClient;
 using System;
 using System.Data;
 using System.Data.Common;
@@ -13,18 +13,31 @@ namespace DatabaseLib
 {
     public static class DataHelper
     {
-        static string m_ConnStr = @"Data Source=.\SQLEXPRESS;Initial Catalog=SharpSCADA;Integrated Security=True";
+        static string m_ConnStr = string.Format(@"Data Source={0}\SQLEXPRESS;Initial Catalog=SCADA;Integrated Security=True", ReadKey("HMI_Database"));
         static string m_Path = @"D:\HDA";
         static string m_host = Environment.MachineName;
         static string m_type = "MSSQL";
         //数据库工厂接口  
-        const string CFGPATH = @"C:\DataConfig\host.cfg";
-        const string INIPATH = @"C:\DataConfig\host.ini";
+        static string CFGPATH = string.Format(@"{0}\host.cfg", ReadKey("HMI_DataConfig"));
+        static string INIPATH = string.Format(@"{0}\host.ini", ReadKey("HMI_DataConfig"));
         const string DATALOGSOURCE = "Data Operations";
         const string DATALOGNAME = "Data Log";
         const int STRINGMAX = 255;
 
         static EventLog Log;
+
+        public static string ReadKey(string keyName)
+        {
+            string result = string.Empty;
+            try
+            {
+                Microsoft.Win32.RegistryKey regKey;
+                regKey = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"Software\HMI");//HKEY_CURRENR_USER\Software\VSSCD
+                if (regKey != null) result = (string)regKey.GetValue(keyName);
+            }
+            catch (Exception ex) { throw ex; }
+            return result;
+        }
         #region GetInstance
         private static IDataFactory _ins;
 
