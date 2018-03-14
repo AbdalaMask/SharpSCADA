@@ -1,0 +1,7 @@
+D:\Downloads\Compressed\SharpSCADA-master\SharpSCADA-master\SCADA\Program\XGTDriver\obj\Debug\XGTDriver.csprojResolveAssemblyReference.cache
+D:\Downloads\Compressed\SharpSCADA-master\SharpSCADA-master\SCADA\Program\XGTDriver\bin\Debug\XGTDriver.dll
+D:\Downloads\Compressed\SharpSCADA-master\SharpSCADA-master\SCADA\Program\XGTDriver\bin\Debug\XGTDriver.pdb
+D:\Downloads\Compressed\SharpSCADA-master\SharpSCADA-master\SCADA\Program\XGTDriver\bin\Debug\DataService.dll
+D:\Downloads\Compressed\SharpSCADA-master\SharpSCADA-master\SCADA\Program\XGTDriver\bin\Debug\DataService.pdb
+D:\Downloads\Compressed\SharpSCADA-master\SharpSCADA-master\SCADA\Program\XGTDriver\obj\Debug\XGTDriver.dll
+D:\Downloads\Compressed\SharpSCADA-master\SharpSCADA-master\SCADA\Program\XGTDriver\obj\Debug\XGTDriver.pdb
