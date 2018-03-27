@@ -1,4 +1,4 @@
-﻿using DataService;
+using DataService;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace XGTDriver
 {
-    [Description("XGT CNET")]
+    [Description("XGT CNET Protocol")]
     public sealed class XGTCNETDriver : IPLCDriver
     {
         #region :IDriver
@@ -149,7 +149,7 @@ namespace XGTDriver
         }
 
         private SerialPort _serialPort;
-        #region 写单个线圈或单个离散输出   功能码：0x05
+        #region Write
         public int WriteSingleCoils(int id, int startAddress, bool OnOff)
         {
             byte[] frame = XGTCnetMessage.WriteSingleCoilMessage(Convert.ToByte(id), Convert.ToString(startAddress), OnOff);
@@ -182,11 +182,7 @@ namespace XGTDriver
                 }
             }
         }
-        #endregion
-
-         
-
-        #region 写单个保持寄存器 功能码:0x06
+        #region WriteSingleRegister:0x06
         public int WriteSingleRegister(int id, int startAddress, byte[] values)
         {
             
@@ -224,12 +220,12 @@ namespace XGTDriver
         }
         #endregion
 
-         
+           #endregion
 
         #region  :IPLCDriver
         public int PDU
         {
-             get { return 0xFD; } //0xFD 十进制为253
+             get { return 255; } 
         }
         private string _serverName = "unknown";
         public string ServerName
@@ -253,7 +249,7 @@ namespace XGTDriver
             }
             switch (address[0])
             {
-                case '0':
+                case 'M':
                     {
                         dv.DBNumber = 0;
                         int st;
@@ -264,7 +260,7 @@ namespace XGTDriver
                         dv.Bit--;
                     }
                     break;
-                case '1':
+                case 'P':
                     {
                         dv.DBNumber = 1;
                         int st;
@@ -275,7 +271,7 @@ namespace XGTDriver
                         dv.Bit--;
                     }
                     break;
-                case '4':
+                case 'D':
                     {
                         int index = address.IndexOf('.');
                         dv.DBNumber = 4;
@@ -316,18 +312,8 @@ namespace XGTDriver
             return string.Empty;
         }
         #endregion
-        private string bufferMsgReceiver = null;
-        public string ReadLine(string m_PLC)
-        {
-
-            if (this._serialPort.BytesToRead >= 10)
-            {
-                bufferMsgReceiver = this._serialPort.ReadExisting();
-                this._serialPort.DiscardInBuffer();
-
-            }
-            return bufferMsgReceiver;
-        }
+       
+       
         #region :IReaderWriter
         object _async = new object();
         public byte[] ReadBytes(DeviceAddress address, ushort size)
@@ -340,8 +326,6 @@ namespace XGTDriver
                
                  lock (_async)
                 {
-                    byte[] frameBytes = new byte[size * 2 + 5];//size * 2 +
-                    byte[] data = new byte[size * 2];
                     switch (func)
                     {
                         case 0:
@@ -349,53 +333,37 @@ namespace XGTDriver
                             byte[] frame = XGTCnetMessage.ReadCoilStatusMessage(Convert.ToByte(address.Area), "MB", Convert.ToString(address.Start), size);
                             _serialPort.Write(frame, 0, frame.Length);
                             Thread.Sleep(100);
-                            buffReceiver = ReadLine("XGB");
-                            tempStrg = buffReceiver.Substring(1, buffReceiver.Length - 2);
-                            tempStrg = tempStrg.Remove(0, 9);
+                        
                             break;
                         case 1:
                             byte[] frame1 = XGTCnetMessage.ReadInputStatusMessage(Convert.ToByte(address.Area), "PB", Convert.ToString(address.Start), size);
                             _serialPort.Write(frame1, 0, frame1.Length);
                             Thread.Sleep(100);
-                            buffReceiver = ReadLine("XGB");
-                            tempStrg = buffReceiver.Substring(1, buffReceiver.Length - 2);
-                            tempStrg = tempStrg.Remove(0, 9);
                             break;
                         case 4:
 
                             byte[] frame4 = XGTCnetMessage.ReadHoldingRegistersMessage(Convert.ToByte(address.Area), "DW", Convert.ToString(address.Start), size);
                             _serialPort.Write(frame4, 0, frame4.Length);
                             Thread.Sleep(100);
-                            buffReceiver = ReadLine("XGB");
-                            tempStrg = buffReceiver.Substring(1, buffReceiver.Length - 2);
-                            tempStrg = tempStrg.Remove(0, 9);
-                            return Conversion.HexToBytes(tempStrg);
+                           
                             break;
                         default:
                             break;
                     }
-                    int numBytesRead = 0;
-                    while (numBytesRead < 2)
-                        numBytesRead += _serialPort.Read(frameBytes, numBytesRead, 2 - numBytesRead);
-                    if (frameBytes[1] == address.DBNumber)
+                    if (this._serialPort.BytesToRead >= 10)
                     {
-                        while (numBytesRead < frameBytes.Length)
-                            numBytesRead += _serialPort.Read(frameBytes, numBytesRead, frameBytes.Length - numBytesRead);
-                        if (Utility.CheckSumCRC(frameBytes))
-                        {
-                            Array.Copy(frameBytes, 3, data, 0, data.Length);
-                            Thread.Sleep(20);
-                            return data;
-                        }
-                        else Thread.Sleep(10);
+                        buffReceiver = this._serialPort.ReadExisting();
+                        this._serialPort.DiscardInBuffer();
+
                     }
-                    else
+                    if (buffReceiver != null)
                     {
-                        numBytesRead = 0;
-                        while (numBytesRead < 3)
-                            numBytesRead += _serialPort.Read(frameBytes, numBytesRead, 3 - numBytesRead);
-                        Thread.Sleep(10);
+                    tempStrg = buffReceiver.Substring(1, buffReceiver.Length - 2);
+                    tempStrg = tempStrg.Remove(0, 9);
+                    return Conversion.HexToBytes(tempStrg);
                     }
+                  
+                  
 
                 }
                 return null;
@@ -471,7 +439,7 @@ namespace XGTDriver
 
         public int WriteBytes(DeviceAddress address, byte[] bit)
         {
-            return 0;// WriteMultipleRegister(address.Area, address.Start, bit);
+            throw new NotImplementedException();
         }
 
         public int WriteBit(DeviceAddress address, bool bit)
@@ -496,22 +464,22 @@ namespace XGTDriver
 
         public int WriteUInt32(DeviceAddress address, uint value)
         {
-            return 0;// WriteMultipleRegister(address.Area, address.Start, BitConverter.GetBytes(value));
+            throw new NotImplementedException();
         }
 
         public int WriteInt32(DeviceAddress address, int value)
         {
-            return 0;// WriteMultipleRegister(address.Area, address.Start, BitConverter.GetBytes(value));
+            throw new NotImplementedException();
         }
 
         public int WriteFloat(DeviceAddress address, float value)
         {
-            return 0;// WriteMultipleRegister(address.Area, address.Start, BitConverter.GetBytes(value));
+            throw new NotImplementedException();
         }
 
         public int WriteString(DeviceAddress address, string str)
         {
-            return 0;// WriteMultipleRegister(address.Area, address.Start, Encoding.ASCII.GetBytes(str));
+            throw new NotImplementedException();
         }
 
         public int WriteValue(DeviceAddress address, object value)
