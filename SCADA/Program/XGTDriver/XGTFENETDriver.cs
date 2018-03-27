@@ -1,21 +1,22 @@
-﻿using DataService;
+using DataService;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 
 namespace XGTDriver
 {
-    [Description("XGT FENET")]
+    [Description("XGT FENET Ethernet protocol")]
     public sealed class XGTFENETDriver : IPLCDriver, IMultiReadWrite 
     {
         #region
         public int PDU
         {
             
-            get { return 249; } //0xF9 十进制为249
+            get { return 255; } 
         }
 
         public DeviceAddress GetDeviceAddress(string address)
@@ -33,7 +34,7 @@ namespace XGTDriver
             }
             switch (address[0])
             {
-                case '0':
+                case 'M':
                     {
                         dv.DBNumber = 0;
                         int st;
@@ -45,7 +46,7 @@ namespace XGTDriver
                         dv.Bit--;
                     }
                     break;
-                case '1':
+                case 'P':
                     {
                         dv.DBNumber = 1;
                         int st;
@@ -57,7 +58,7 @@ namespace XGTDriver
                         dv.Bit--;
                     }
                     break;
-                case '4':
+                case 'D':
                     {
                         int index = address.IndexOf('.');
                         dv.DBNumber = 4;
@@ -164,6 +165,14 @@ namespace XGTDriver
         public bool Connect()
         {
             int port = 2004;
+            // check if available
+            Ping p = new Ping();
+            PingReply pingReplay = p.Send(_ip);
+            if (pingReplay.Status != IPStatus.Success)
+            {
+                throw new Exception();
+            }
+
             try
             {
                 if (tcpSynCl != null)
@@ -173,9 +182,8 @@ namespace XGTDriver
                 // Connect synchronous client
                 if (_timeout <= 0) _timeout = 1000;
                 tcpSynCl = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-                tcpSynCl.SendTimeout = _timeout;
-                tcpSynCl.ReceiveTimeout = _timeout;
-                tcpSynCl.NoDelay = true;
+                tcpSynCl.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, 2000);
+                tcpSynCl.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.SendTimeout, 2000);
                 tcpSynCl.Connect(_ip, port);
                 return true;
             }
@@ -205,7 +213,7 @@ namespace XGTDriver
             {
                 if (tcpSynCl.Connected)
                 {
-                    try { tcpSynCl.Shutdown(SocketShutdown.Both); }
+                    try { tcpSynCl.Shutdown(SocketShutdown.Send); }
                     catch { }
                     tcpSynCl.Close();
                 }
@@ -231,27 +239,8 @@ namespace XGTDriver
                     {
                         tcpSynCl.Send(write_data, 0, write_data.Length, SocketFlags.None);//是否存在lock的问题？
                         int result = tcpSynCl.Receive(tcpSynClBuffer, 0, 0xFF, SocketFlags.None);
-
-                        byte function = tcpSynClBuffer[7];
-                        byte[] data;
-
-                        if (result == 0) return null  ;
-
-                        
-                        // Write response data
-                        if ((function >= 5) && (function != 6))
-                        {
-                            data = new byte[2];
-                            Array.Copy(tcpSynClBuffer, 10, data, 0, 2);
-                        }
-                        // ------------------------------------------------------------
-                        // Read response data
-                        else
-                        {
-                            data = new byte[tcpSynClBuffer[8]];
-                            Array.Copy(tcpSynClBuffer, 9, data, 0, tcpSynClBuffer[8]);
-                        }
-                        return data;
+ 
+                        return tcpSynClBuffer;
                     }
                     catch (SocketException ex)
                     {
@@ -332,11 +321,7 @@ namespace XGTDriver
 
         public byte[] WriteMultipleCoils(int id, int startAddress, ushort numBits, byte[] values)
         {
-            //byte numBytes = Convert.ToByte(values.Length);
-            //byte[] data;
-            //data = CreateWriteHeader(id, startAddress, numBits, (byte)(numBytes + 2), Modbus.fctWriteMultipleCoils);
-            //Array.Copy(values, 0, data, 13, numBytes);
-            return null;// WriteSyncData(data);
+            throw new NotImplementedException();
         }
 
         public byte[] WriteSingleRegister(int id, int startAddress, byte[] values)
@@ -348,16 +333,10 @@ namespace XGTDriver
 
         public byte[] WriteMultipleRegister(int id, int startAddress, byte[] values)
         {
-            //ushort numBytes = Convert.ToUInt16(values.Length);
-            //if (numBytes % 2 > 0) numBytes++;
-            //byte[] data;
-
-            //data = CreateWriteHeader(id, startAddress, Convert.ToUInt16(numBytes / 2), Convert.ToUInt16(numBytes + 2), Modbus.fctWriteMultipleRegister);
-            //Array.Copy(values, 0, data, 13, values.Length);
-            return null;// WriteSyncData(data);
+            throw new NotImplementedException();
         }
 
-           internal void CallException(int id, byte function, string  exception)
+        internal void CallException(int id, byte function, string  exception)
         {
             if (tcpSynCl == null) return;
             if (OnError != null)
